@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f8f9fa; --card: #ffffff; --text: #212529; --primary: #4361ee; --border: #dee2e6; --hover: #f1f3f5; }
+        [data-theme="dark"] { --bg: #121212; --card: #1e1e1e; --text: #e9ecef; --primary: #4cc9f0; --border: #333333; --hover: #2d2d2d; }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; transition: 0.3s; padding-bottom: 100px; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+        .theme-toggle { cursor: pointer; font-size: 1.5rem; background: none; border: none; color: var(--text); }
+
+        /* Pop-up / Modal */
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; text-align: center; display: flex; flex-direction: column; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 25px; cursor: pointer; color: var(--text); }
+        
+        #previewTitle { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 10px 0; word-break: break-all; overflow-wrap: break-word; white-space: normal; line-height: 1.4; padding: 0 10px; }
+        .preview-media { width: 100%; max-height: 55vh; border-radius: 10px; object-fit: contain; }
+
+        /* Storage Card */
+        .storage-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .main-bar { height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; margin: 10px 0; }
+        .main-fill { height: 100%; background: var(--primary); width: {{ storage.percent }}%; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+        .stat-item { background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; font-size: 0.8rem; }
+        .stat-val { display: block; font-weight: bold; color: var(--primary); }
+
+        /* File List & Items (Tanpa Ikon Kertas) */
+        .file-item { display: grid; grid-template-columns: 35px 1fr 40px; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); gap: 10px; }
+        .file-checkbox { width: 18px; height: 18px; cursor: pointer; }
+        .name-link { font-weight: 600; color: var(--primary); cursor: pointer; word-break: break-all; }
+        .file-meta { font-size: 0.75rem; color: #888; }
+
+        /* Floating Action Bar */
+        #batch-action-bar { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .btn-download-all { background: #00d1ff; color: white; border: none; padding: 15px 25px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,211,255,0.4); font-weight: bold; cursor: pointer; }
+
+        /* Progress Overlay */
+        #progressOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; color: white; }
+        .progress-box { width: 80%; max-width: 400px; background: #333; padding: 20px; border-radius: 10px; }
+        .progress-bar { height: 10px; background: #555; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.2s; }
+        
+        .upload-section { background: var(--card); border: 2px dashed var(--primary); border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 30px; }
+        .btn-action { background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; width: 100%; }
+        .category-container { display: flex; flex-direction: column; gap: 20px; }
+        @media (min-width: 992px) { .category-container { display: grid; grid-template-columns: repeat(2, 1fr); } }
+        .category-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; height: 450px; display: flex; flex-direction: column; }
+        .cat-header { background: var(--primary); color: white; padding: 15px; font-weight: bold; border-radius: 11px 11px 0 0; }
+        .file-list { flex-grow: 1; overflow-y: auto; }
+    </style>
+</head>
+<body data-theme="light">
+
+<div id="progressOverlay">
+    <div class="progress-box">
+        <div id="progressStatus">Memproses...</div>
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressPercent" style="text-align: right; margin-top: 5px;">0%</div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h2>📂 MyCloud</h2>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</button>
+    </header>
+
+    <div class="storage-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
+            <span>Storage Server</span>
+            <span>{{ storage.free }} GB Tersedia</span>
+        </div>
+        <div class="main-bar"><div class="main-fill"></div></div>
+        <div class="stats-grid">
+            <div class="stat-item">🖼️ Gambar <span class="stat-val">{{ stats['Gambar'] }}</span></div>
+            <div class="stat-item">🎬 Video <span class="stat-val">{{ stats['Video'] }}</span></div>
+            <div class="stat-item">🎵 Audio <span class="stat-val">{{ stats['Audio'] }}</span></div>
+            <div class="stat-item">📄 Dokumen <span class="stat-val">{{ stats['Dokumen'] }}</span></div>
+            <div class="stat-item">📦 Lainnya <span class="stat-val">{{ stats['Lainnya'] }}</span></div>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <input type="file" id="fileInput" multiple hidden onchange="handleUpload(this)">
+        <label for="fileInput" style="cursor:pointer; display:block;">📁 Pilih & Upload Files</label>
+    </div>
+
+    <div class="category-container">
+        {% for category, files in grouped_files.items() %}
+            {% if files %}
+            <div class="category-card">
+                <div class="cat-header">{{ category }}</div>
+                <div class="file-list">
+                    {% for file in files %}
+                    <div class="file-item" data-name="{{ file.display_name.lower() }}">
+                        <input type="checkbox" class="file-checkbox" value="{{ file.name }}">
+                        <div style="overflow:hidden;">
+                            <div class="name-link" onclick="openPreview('{{ file.name }}', '{{ file.category }}')">{{ file.display_name }}</div>
+                            <div class="file-meta">{{ file.time }} • {{ file.size_str }}</div>
+                        </div>
+                        <a href="/delete/{{ file.name }}" onclick="return confirm('Hapus?')">🗑️</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div id="batch-action-bar">
+    <button onclick="downloadSelected()" class="btn-download-all">Download Terpilih (ZIP)</button>
+</div>
+
+<div id="previewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h3 id="previewTitle"></h3>
+        <div id="previewBody"></div>
+        <div style="margin-top: 20px;">
+            <button onclick="downloadWithProgress()" class="btn-action">Download Files</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFileUrl = "";
+    let currentFileName = "";
+    let initialFileCount = {{ grouped_files.values()|map('length')|sum }};
+
+    // --- FITUR AUTO REFRESH ---
+    setInterval(function() {
+        fetch('/')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newFileCount = doc.querySelectorAll('.file-item').length;
+                if (newFileCount !== initialFileCount) {
+                    location.reload();
+                }
+            })
+            .catch(err => console.log("Cek koneksi server..."));
+    }, 5000);
+
+    // Checkbox Listener
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('file-checkbox')) {
+            const checked = document.querySelectorAll('.file-checkbox:checked');
+            document.getElementById('batch-action-bar').style.display = checked.length > 0 ? 'block' : 'none';
+        }
+    });
+
+    function downloadSelected() {
+        const checked = document.querySelectorAll('.file-checkbox:checked');
+        const filenames = Array.from(checked).map(cb => cb.value);
+        showProgress("Menyiapkan ZIP...");
+        
+        fetch('/download-zip', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({filenames: filenames})
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "MyCloud_Files.zip";
+            document.body.appendChild(a);
+            a.click();
+            hideProgress();
+        });
+    }
+
+    function handleUpload(input) {
+        if (input.files.length === 0) return;
+        const formData = new FormData();
+        for (let file of input.files) { formData.append('file', file); }
+        const xhr = new XMLHttpRequest();
+        showProgress("Mengunggah...");
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) updateProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => location.reload();
+        xhr.open('POST', '/');
+        xhr.send(formData);
+    }
+
+    function openPreview(filename, category) {
+        currentFileName = filename;
+        currentFileUrl = "/download/" + encodeURIComponent(filename);
+        const modal = document.getElementById('previewModal');
+        const body = document.getElementById('previewBody');
+        document.getElementById('previewTitle').innerText = filename.replace(/-/g, ' ');
+        body.innerHTML = '';
+
+        if (category === 'Gambar') {
+            body.innerHTML = `<img src="${currentFileUrl}" class="preview-media">`;
+        } else if (category === 'Video') {
+            body.innerHTML = `<video src="${currentFileUrl}" controls class="preview-media" autoplay></video>`;
+        } else if (category === 'Audio') {
+            body.innerHTML = `<audio src="${currentFileUrl}" controls style="width:100%; margin:20px 0;" autoplay></audio>`;
+        } else if (filename.toLowerCase().endsWith('.pdf')) {
+            body.innerHTML = `<iframe src="${currentFileUrl}" style="width:100%; height:400px;" frameborder="0"></iframe>`;
+        } else {
+            body.innerHTML = `<div style="padding:40px; background:var(--hover); border-radius:10px;">Pratinjau tidak tersedia</div>`;
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('previewModal').style.display = 'none';
+        document.getElementById('previewBody').innerHTML = '';
+    }
+
+    function downloadWithProgress() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', currentFileUrl, true);
+        xhr.responseType = 'blob';
+        showProgress("Mengunduh...");
+        xhr.onprogress = (e) => {
+            if (e.lengthComputable) updateProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                const url = window.URL.createObjectURL(xhr.response);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentFileName.replace(/-/g, ' ');
+                document.body.appendChild(a);
+                a.click();
+                hideProgress();
+            }
+        };
+        xhr.send();
+    }
+
+    function showProgress(status) {
+        document.getElementById('progressOverlay').style.display = 'flex';
+        document.getElementById('progressStatus').innerText = status;
+    }
+
+    function updateProgress(percent) {
+        document.getElementById('progressFill').style.width = percent + '%';
+        document.getElementById('progressPercent').innerText = percent + '%';
+    }
+
+    function hideProgress() {
+        document.getElementById('progressOverlay').style.display = 'none';
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('themeIcon').innerText = isDark ? '🌙' : '☀️';
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    window.onload = () => {
+        if (localStorage.getItem('theme') === 'dark') toggleTheme();
+    };
+</script>
+</body>
+</html>
