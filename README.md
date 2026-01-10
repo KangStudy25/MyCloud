@@ -11,7 +11,7 @@ git clone https://github.com/KangStudy25/MyCloud.git && cd mycloud && chmod +x i
 ```
 # NOTE
 
-🛠️** PENGATURAN JALUR PENYIMPANAN (MANUAL PATH)**
+## 🛠️PENGATURAN JALUR PENYIMPANAN (MANUAL PATH)
 
 Masukkan jalur folder tempat file akan disimpan di bawah ini.
 CONTOH PENGISIAN JALUR:
@@ -22,3 +22,8 @@ CONTOH PENGISIAN JALUR:
 ```
 MANUAL_PATH = "/storage/0625-F3EF/Android/media/com.termux/CloudKu"
 ```
+### Pengaturan Port
+Kode printah
+Contoh: python app.py <port yang diinginkan>
+```
+python app.py 7060
