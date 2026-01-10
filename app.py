@@ -8,14 +8,18 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# SESUAIKAN ID SD CARD ANDA
-SD_ID = "0625-F3EF"
-UPLOAD_FOLDER = f"/storage/{SD_ID}/Android/media/com.termux/CloudKu"
+# ====================================================================
+#Menetapkan Jalut PATH Secara Manual
+MANUAL_PATH = "..."
+# ====================================================================
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+def get_upload_path():
+    if MANUAL_PATH and os.path.exists(MANUAL_PATH):
+        return MANUAL_PATH
 
+UPLOAD_FOLDER = get_upload_path()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+print(f"\n[INFO] MyCloud aktif menggunakan lokasi: {UPLOAD_FOLDER}\n")
 
 CATEGORIES = {
     'Gambar': ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg'],
