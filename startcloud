@@ -1,7 +1,0 @@
-#!/bin/bash
-echo "Menjalankan Cloud Storage..."
-# Jalankan Flask di background
-python app.py &
-sleep 2
-# Jalankan Tunnel (GANTI <TOKEN> dengan token Anda)
-cloudflared tunnel run --token eyJhIjoiOTM4ZDI4OWQxMzlkZDVhYTQ2MDQwMGQzYWI5MjNmZGYiLCJ0IjoiM2E1ZDI1OTYtYmVjNC00N2IwLWJjOTctNjcxNzhiNmQ3YmM0IiwicyI6Ik5UWXhZVEU1WVRRdE56UmxaUzAwTTJZeExXRXhZemd0WXpZMVkyVTVaV0psT0RaaiJ9
