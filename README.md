@@ -25,6 +25,6 @@ MANUAL_PATH = "/storage/0625-F3EF/Android/media/com.termux/CloudKu"
 ### Pengaturan Port
 
 Kode printah
- Contoh: python app.py port-yang-diinginkan>
+ -Contoh: python app.py port-yang-diinginkan>
 ```
 python app.py 7060
