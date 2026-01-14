@@ -73,7 +73,10 @@ python app.py 7060
 ## 🛠️PENGATURAN JALUR dan IP PADA AGENT
 
 ```SERVER_IP = "10.136.92.30"``` ### Ganti dengan IP Server MyCloud
+
 ```SERVER_URL = f"http://10.136.92.30:5000/api/sync"``` ### Gunakan URL server
+
 ```WATCH_PATH = r"E:\Agen"``` ### Folder yang menjadi tempat penyimpanan yang ingin di backup secara otomatis di MyCloud
+
 ```TOKEN = "KunciRahasiaCloud123"``` ### Kunci agar Server dan Agent dapat berkomunikasi (Dapat Dirubah Harus sama antara Agen dan MyCloud)
 
