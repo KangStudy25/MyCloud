@@ -34,7 +34,7 @@ python app.py 7060
 ```
 
 
-# 📂 MyCloud + Client Cloud
+# 📂 MyCloud + Client Cloud (Gunakan folder Server_Client)
 
 Cloud pribadi + agent uploud otomatis di perangkat yang berbeda.
 
